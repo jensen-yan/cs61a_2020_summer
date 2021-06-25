@@ -22,8 +22,19 @@ def roll_dice(num_rolls, dice=six_sided):
     assert num_rolls > 0, 'Must roll at least once.'
     # BEGIN PROBLEM 1
     "*** YOUR CODE HERE ***"
+    sum = 0
+    foundOne = False
+    for i in range(num_rolls):
+        res = dice()
+        if res == 1:
+            foundOne = True
+        sum += res
+    return 1 if foundOne else sum
     # END PROBLEM 1
-
+# counted_dice = make_test_dice(4, 1, 2, 6)
+# roll_dice(3, counted_dice)
+# a = roll_dice(1, counted_dice)
+# print(a)
 
 def free_bacon(score):
     """Return the points scored from rolling 0 dice (Free Bacon).
@@ -33,6 +44,9 @@ def free_bacon(score):
     assert score < 100, 'The game should be over.'
     # BEGIN PROBLEM 2
     "*** YOUR CODE HERE ***"
+    low  = score % 10   # 个位和十位
+    high = score // 10
+    return 10 - low + high
     # END PROBLEM 2
 
 
@@ -51,6 +65,10 @@ def take_turn(num_rolls, opponent_score, dice=six_sided):
     assert opponent_score < 100, 'The game should be over.'
     # BEGIN PROBLEM 3
     "*** YOUR CODE HERE ***"
+    if num_rolls == 0:
+        return free_bacon(opponent_score)
+    else:
+        return roll_dice(num_rolls, dice)
     # END PROBLEM 3
 
 
@@ -60,8 +78,14 @@ def is_swap(player_score, opponent_score):
     """
     # BEGIN PROBLEM 4
     "*** YOUR CODE HERE ***"
+    p = ((player_score   // 10) % 10,  player_score % 10)    # p[0] = 十位数
+    q = ((opponent_score // 10) % 10,  opponent_score % 10)
+    if abs(p[1] - q[1]) == q[0]:
+        return True
+    return False
     # END PROBLEM 4
 
+# is_swap(1, 0)
 
 def other(who):
     """Return the other player, for a player WHO numbered 0 or 1.
@@ -100,6 +124,30 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
     who = 0  # Who is about to take a turn, 0 (first) or 1 (second)
     # BEGIN PROBLEM 5
     "*** YOUR CODE HERE ***"
+    def checkNum(dice_num, before_num):
+        return abs(dice_num - before_num) == 2
+    before_s0, before_s1 = 0, 0
+    while score0 < goal and score1 < goal:
+        if who == 0:
+            num_rolls0 = strategy0(score0, score1)
+            cur_score = take_turn(num_rolls0, score1, dice)
+            score0 += cur_score
+            if feral_hogs and checkNum(num_rolls0, before_s0):
+                score0 += 3
+            before_s0 = cur_score
+            if is_swap(score0, score1):
+                score0, score1 = score1, score0
+        if who == 1:
+            num_rolls1 = strategy1(score1, score0)
+            cur_score = take_turn(num_rolls1, score0, dice)
+            score1 += cur_score
+            if feral_hogs and checkNum(num_rolls1, before_s1):
+                score1 += 3
+            before_s1 = cur_score
+            if is_swap(score1, score0):
+                score0, score1 = score1, score0
+        
+        who = other(who)
     # END PROBLEM 5
     # (note that the indentation for the problem 6 prompt (***YOUR CODE HERE***) might be misleading)
     # BEGIN PROBLEM 6
@@ -322,6 +370,11 @@ def final_strategy(score, opponent_score):
 # NOTE: Functions in this section do not need to be changed. They use features
 # of Python not yet covered in the course.
 
+# import hog
+# always_three = hog.make_test_dice(3)
+# always = hog.always_roll
+# s0, s1 = hog.play(always(0), always(0), score0=9, score1=92, dice=always_three, feral_hogs=False)
+# print(s0)
 
 @main
 def run(*args):

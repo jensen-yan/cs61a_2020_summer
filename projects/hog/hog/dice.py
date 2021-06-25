@@ -20,7 +20,7 @@ def make_fair_dice(sides):
     assert type(sides) == int and sides >= 1, 'Illegal value for sides'
     def dice():
         return randint(1,sides)
-    return dice
+    return dice     # 返回一个函数, 函数返回随机值
 
 four_sided = make_fair_dice(4)
 six_sided = make_fair_dice(6)
@@ -48,7 +48,12 @@ def make_test_dice(*outcomes):
         assert type(o) == int and o >= 1, 'Outcome is not a positive integer'
     index = len(outcomes) - 1
     def dice():
-        nonlocal index
+        nonlocal index  # 一个不断递增的全局变量
         index = (index + 1) % len(outcomes)
-        return outcomes[index]
+        return outcomes[index]  # 根据下标index返回输入(1,2,3), () 为不可变序列的元祖
     return dice
+
+# dice = make_test_dice(1, 2, 3)
+# print(dice())
+# print(dice())
+# print(dice())
