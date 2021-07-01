@@ -6,6 +6,8 @@ def composer(func=lambda x: x):
     Returns two functions -
     one holding the composed function so far, and another
     that can create further composed problems.
+    func函数是之前所有组合的函数
+    func_adder用于添加新函数到原来函数中
     >>> add_one = lambda x: x + 1
     >>> mul_two = lambda x: x * 2
     >>> f, func_adder = composer()
@@ -21,6 +23,10 @@ def composer(func=lambda x: x):
     """
     def func_adder(g):
         "*** YOUR CODE HERE ***"
+        # 会调用composer吧
+        # 第一个函数不是单纯的g, 应该还要加上之前的
+        # 第二个函数又调用composer(g), 返回后面的函数
+        return composer(lambda x: func(g(x)))
     return func, func_adder
 
 
@@ -43,6 +49,9 @@ def g(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    if n <= 3:
+        return n
+    return g(n-1) + 2*g(n-2) + 3*g(n-3)
 
 def g_iter(n):
     """Return the value of G(n), computed iteratively.
@@ -63,6 +72,13 @@ def g_iter(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    if n <= 3:
+        return n
+    a, b, c = 1, 2, 3
+    for i in range(3, n):
+        a, b, c = b, c, (c + 2*b + 3*a)
+    return c
+
 
 
 def missing_digits(n):
@@ -93,6 +109,15 @@ def missing_digits(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    if n // 10 == 0:    # 1位数, 不缺
+        return 0
+    # 前面的数 + 中间缺的数
+    def between(a, b):
+        assert a <= b
+        if a == b:
+            return 0
+        return b - a - 1
+    return missing_digits(n // 10) + between( ((n // 10) % 10)  , n % 10)
 
 
 def count_change(total):
@@ -112,8 +137,33 @@ def count_change(total):
     True
     """
     "*** YOUR CODE HERE ***"
+    # def count_helper(n, m):
+    #     if n == 0:
+    #         return 1
+    #     elif n < 0:
+    #         return 0
+    #     elif m == 1:    # n个1 组成, 1种可能
+    #         return 1
+    #     else:
+    #         # 前者包含m的划分, 后者不包含
+    #         return count_helper(n-m, m) + count_helper(n, m//2)
+    # from math import log2
+    # max_m = int(log2(total))
+    # max_m = int(pow(2, max_m))
+    # return count_helper(total, max_m)
+    def count_helper(total, small_coin):
+        # 基本情况
+        if total == 0:
+            return 1
+        elif total < 0:
+            return 0
+        if small_coin > total:
+            return 0
+        return count_helper(total - small_coin, small_coin) + count_helper(total, small_coin*2)
+    return count_helper(total, 1)
 
-
+# count_change(7)
+            
 def print_move(origin, destination):
     """Print instructions to move a disk."""
     print("Move the top disk from rod", origin, "to rod", destination)
