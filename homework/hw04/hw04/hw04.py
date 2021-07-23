@@ -44,11 +44,13 @@ def planet(size):
     """Construct a planet of some size."""
     assert size > 0
     "*** YOUR CODE HERE ***"
+    return ['planet', size]
 
 def size(w):
     """Select the size of a planet."""
     assert is_planet(w), 'must call size on a planet'
     "*** YOUR CODE HERE ***"
+    return w[1]
 
 def is_planet(w):
     """Whether w is a planet."""
@@ -105,6 +107,15 @@ def balanced(m):
     True
     """
     "*** YOUR CODE HERE ***"
+    if is_planet(m):
+        return True
+
+    assert is_mobile(m), "must be a mobile"
+    l1, l2 = length(left(m)), length(right(m))
+    w1, w2 = total_weight(end(left(m))), total_weight(end(right(m)))
+    B = w1 * l1 == w2 * l2  
+    # 左, 右 子树平衡, 且自己平衡
+    return balanced(end(left(m))) & balanced(end(right(m))) & B
 
 def totals_tree(m):
     """Return a tree representing the mobile with its total weight at the root.
@@ -136,6 +147,15 @@ def totals_tree(m):
     True
     """
     "*** YOUR CODE HERE ***"
+    # 返回一棵树!
+    if is_planet(m):
+        return tree(size(m))
+    
+    assert is_mobile(m), "must be mobile"
+    root = total_weight(m)
+    L = totals_tree(end(left(m)))
+    R = totals_tree(end(right(m)))
+    return tree(root, [L, R])
 
 
 def replace_leaf(t, find_value, replace_value):
@@ -168,6 +188,14 @@ def replace_leaf(t, find_value, replace_value):
     True
     """
     "*** YOUR CODE HERE ***"
+    if is_leaf(t):
+        if label(t) == find_value:
+            return tree(replace_value)
+        else:
+            return t
+    
+    bt = [replace_leaf(b, find_value, replace_value) for b in branches(t)]
+    return tree(label(t), bt)
 
 
 def preorder(t):
@@ -181,6 +209,14 @@ def preorder(t):
     [2, 4, 6]
     """
     "*** YOUR CODE HERE ***"
+    if is_leaf(t):
+        return [label(t)]
+
+    res = []
+    for b in branches(t):
+        res += preorder(b)
+    # return [label(t)] + [preorder(b) for b in branches(t)]
+    return [label(t)] + res
 
 
 def has_path(t, phrase):
@@ -211,8 +247,21 @@ def has_path(t, phrase):
     >>> has_path(greetings, 'bye')
     False
     """
-    assert len(phrase) > 0, 'no path for empty phrases.'
+    # assert len(phrase) > 0, 'no path for empty phrases.'
     "*** YOUR CODE HERE ***"
+    if not phrase:
+        return True
+    if is_leaf(t):
+        return phrase[0] == label(t)
+    
+    found = False
+    if phrase[0] == label(t):
+        for b in branches(t):
+            found |= has_path(b, phrase[1:])
+        return found
+    else:
+        return False
+
 
 
 def interval(a, b):
@@ -222,10 +271,13 @@ def interval(a, b):
 def lower_bound(x):
     """Return the lower bound of interval x."""
     "*** YOUR CODE HERE ***"
+    return x[0]
 
 def upper_bound(x):
     """Return the upper bound of interval x."""
     "*** YOUR CODE HERE ***"
+    return x[1]
+
 def str_interval(x):
     """Return a string representation of interval x.
     """
@@ -240,17 +292,21 @@ def add_interval(x, y):
 def mul_interval(x, y):
     """Return the interval that contains the product of any value in x and any
     value in y."""
-    p1 = x[0] * y[0]
-    p2 = x[0] * y[1]
-    p3 = x[1] * y[0]
-    p4 = x[1] * y[1]
-    return [min(p1, p2, p3, p4), max(p1, p2, p3, p4)]
+    x0, y0 = lower_bound(x), lower_bound(y)
+    x1, y1 = upper_bound(x), upper_bound(y)
+    p1 = x0 * y0
+    p2 = x0 * y1
+    p3 = x1 * y0
+    p4 = x1 * y1
+    return interval(min(p1, p2, p3, p4), max(p1, p2, p3, p4))
 
 
 def sub_interval(x, y):
     """Return the interval that contains the difference between any value in x
     and any value in y."""
     "*** YOUR CODE HERE ***"
+    y1 = interval(-upper_bound(y), -lower_bound(y))
+    return add_interval(x, y1)
 
 
 def div_interval(x, y):
@@ -258,6 +314,7 @@ def div_interval(x, y):
     any value in y. Division is implemented as the multiplication of x by the
     reciprocal of y."""
     "*** YOUR CODE HERE ***"
+    assert 1/upper_bound(y) < 1/lower_bound(y)
     reciprocal_y = interval(1/upper_bound(y), 1/lower_bound(y))
     return mul_interval(x, reciprocal_y)
 
@@ -276,6 +333,16 @@ def quadratic(x, a, b, c):
     '0 to 10'
     """
     "*** YOUR CODE HERE ***"
+    x0, x1 = lower_bound(x), upper_bound(x)
+    def f(x):
+        return a*x*x + b*x + c
+    fx0, fx1 = f(x0), f(x1)
+    xm = -b / (2*a)
+    if xm > x0 and xm < x1:
+        fxm = f(xm)
+        return interval(min(fx0, fx1, fxm), max(fx0, fx1, fxm))
+    else:
+        return interval(min(fx0, fx1), max(fx0, fx1))
 
 
 def par1(r1, r2):
