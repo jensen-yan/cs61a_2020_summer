@@ -8,6 +8,16 @@ def convert_link(link):
     []
     """
     "*** YOUR CODE HERE ***"
+    # out = []
+    # while link is not Link.empty:
+    #     out += [link.first]
+    #     link = link.rest
+    # return out
+    if link is Link.empty:
+        return []
+    else:
+        return [link.first] + convert_link(link.rest)
+
 
 
 def every_other(s):
@@ -28,6 +38,11 @@ def every_other(s):
     Link(4)
     """
     "*** YOUR CODE HERE ***"
+    if s is Link.empty or s.rest is Link.empty:
+        return
+    s.rest = s.rest.rest
+    every_other(s.rest)     # 继续删除原来的s.rest.rest了
+
 
 
 def label_squarer(t):
@@ -39,6 +54,9 @@ def label_squarer(t):
     Tree(1, [Tree(9, [Tree(25)]), Tree(49)])
     """
     "*** YOUR CODE HERE ***"
+    t.label *= t.label
+    for b in t.branches:
+        label_squarer(b)
 
 
 def cumulative_mul(t):
@@ -51,6 +69,9 @@ def cumulative_mul(t):
     Tree(105, [Tree(15, [Tree(5)]), Tree(7)])
     """
     "*** YOUR CODE HERE ***"
+    for b in t.branches:
+        cumulative_mul(b)
+        t.label *= b.label
 
 
 def has_cycle(link):
@@ -68,6 +89,12 @@ def has_cycle(link):
     False
     """
     "*** YOUR CODE HERE ***"
+    link_copy = link
+    while link is not Link.empty:
+        link = link.rest
+        if link is link_copy:
+            return True
+    return False
 
 def has_cycle_constant(link):
     """Return whether link contains a cycle.
@@ -81,6 +108,17 @@ def has_cycle_constant(link):
     False
     """
     "*** YOUR CODE HERE ***"
+    if link is Link.empty:
+        return False
+    slow, fast = link, link.rest
+    while fast is not Link.empty:
+        if fast.rest is Link.empty:
+            return False
+        elif fast is slow or fast.rest is slow:
+            return True
+        else:
+            slow, fast = slow.rest, fast.rest.rest
+    return False
 
 
 def reverse_other(t):
@@ -97,6 +135,18 @@ def reverse_other(t):
     Tree(1, [Tree(8, [Tree(3, [Tree(5), Tree(4)]), Tree(6, [Tree(7)])]), Tree(2)])
     """
     "*** YOUR CODE HERE ***"
+    if t.is_leaf():
+        return
+    bl = []
+    for b in t.branches:
+        bl.append(b.label)
+    # bl = list(reversed(bl))
+    bl = bl[::-1]
+    for b in t.branches:
+        b.label = bl.pop(0)
+    for b in t.branches:
+        for bb in b.branches:
+            reverse_other(bb)
 
 
 class Link:
@@ -214,4 +264,3 @@ class Tree:
                 tree_str += print_tree(b, indent + 1)
             return tree_str
         return print_tree(self).rstrip()
-
