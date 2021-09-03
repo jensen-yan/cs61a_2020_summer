@@ -23,7 +23,7 @@ class Buffer(object):
     """
     def __init__(self, source):
         self.index = 0
-        self.source = source
+        self.source = source    # 是字符串，也可用下标访问
 
     def pop_first(self):
         """Remove the next item from self and return it. If self has

@@ -107,6 +107,9 @@ class Name(Expr):
         None
         """
         "*** YOUR CODE HERE ***"
+        if self.var_name not in env.keys():
+            return None
+        return env[self.var_name]
 
     def __str__(self):
         return self.var_name
@@ -173,6 +176,9 @@ class CallExpr(Expr):
         Number(14)
         """
         "*** YOUR CODE HERE ***"
+        function = self.operator.eval(env)
+        arguments = [operand.eval(env) for operand in self.operands]
+        return function.apply(arguments)
 
     def __str__(self):
         function = str(self.operator)
@@ -282,6 +288,13 @@ class LambdaFunction(Value):
             raise TypeError("Oof! Cannot apply number {} to arguments {}".format(
                 comma_separated(self.parameters), comma_separated(arguments)))
         "*** YOUR CODE HERE ***"
+        child_env = self.parent.copy()
+        # Len = len(self.parameters)
+        # for i in range(Len):
+        #     child_env[self.parameters[i]] = arguments[i]
+        for parameter, argument in zip(self.parameters, arguments):
+            child_env[parameter] = argument
+        return self.body.eval(child_env)
 
     def __str__(self):
         definition = LambdaExpr(self.parameters, self.body)
@@ -303,7 +316,12 @@ class PrimitiveFunction(Value):
             if type(arg) != Number:
                 raise TypeError("Invalid arguments {} to {}".format(
                     comma_separated(arguments), self))
-        return Number(self.operator(*[arg.value for arg in arguments]))
+        try:
+            return Number(self.operator(*[arg.value for arg in arguments]))
+        except (ZeroDivisionError, OverflowError) as e:
+            print('Error:',e)
+        # 列表前加星号，把列表拆分成多个参数传入函数
+        # return Number(self.operator(*[arg.value for arg in arguments]))
 
     def __str__(self):
         return '<primitive function {}>'.format(self.operator.__name__)

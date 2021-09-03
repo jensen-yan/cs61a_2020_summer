@@ -3,11 +3,11 @@ import string
 from buffer import Buffer
 from expr import *
 
-SYMBOL_STARTS = set(string.ascii_lowercase + string.ascii_uppercase + '_')
+SYMBOL_STARTS = set(string.ascii_lowercase + string.ascii_uppercase + '_')  # 小写大写字母
 SYMBOL_INNERS = SYMBOL_STARTS | set(string.digits)
-NUMERAL = set(string.digits + '-.')
-WHITESPACE = set(' \t\n\r')
-DELIMITERS = set('(),:')
+NUMERAL = set(string.digits + '-.') # 所有数字
+WHITESPACE = set(' \t\n\r') # 空格
+DELIMITERS = set('(),:')    # 特殊符号
 
 def read(s):
     """Parse an expression from a string. If the string does not contain an
@@ -41,15 +41,15 @@ def tokenize(s):
     """
     src = Buffer(s)
     tokens = []
-    while True:
+    while True:     # 不断循环直到找不到token，返回tokens
         token = next_token(src)
         if token is None:
             return tokens
         tokens.append(token)
 
-def take(src, allowed_characters):
+def take(src, allowed_characters):  # 允许的符号加入result中返回
     result = ''
-    while src.current() in allowed_characters:
+    while src.current() in allowed_characters:  # 对数字会不断加入，直到不是数字
         result += src.pop_first()
     return result
 
@@ -61,7 +61,7 @@ def next_token(src):
     elif c in NUMERAL:
         literal = take(src, NUMERAL)
         try:
-            return int(literal)
+            return int(literal)     # 第一个符号是数字，返回整个整数or浮点
         except ValueError:
             try:
                 return float(literal)
@@ -85,17 +85,17 @@ def is_name(s):
 ## Parser ##
 ############
 def read_expr(src):
-    token = src.pop_first()
+    token = src.pop_first() # 不断读取每个符号
     if token is None:
         raise SyntaxError('Incomplete expression')
-    elif is_literal(token):
+    elif is_literal(token):     # 对数字，名字开头，直接返回Literal，Name
         return read_call_expr(src, Literal(token))
     elif is_name(token):
         return read_call_expr(src, Name(token))
     elif token == 'lambda':
         params = read_comma_separated(src, read_param)
         src.expect(':')
-        body = read_expr(src)
+        body = read_expr(src)   # 递归调用read_expr, 返回body
         return LambdaExpr(params, body)
     elif token == '(':
         inner_expr = read_expr(src)
@@ -104,22 +104,22 @@ def read_expr(src):
     else:
         raise SyntaxError("'{}' is not the start of an expression".format(token))
 
-def read_comma_separated(src, reader):
+def read_comma_separated(src, reader):  # 读取由逗号分隔的参数
     if src.current() in (':', ')'):
         return []
     else:
-        s = [reader(src)]
+        s = [reader(src)]   # expr( [3,5] ), 返回Literal(3)
         while src.current() == ',':
-            src.pop_first()
-            s.append(reader(src))
+            src.pop_first() # 跳过，
+            s.append(reader(src))   # 把第剩下的参数加入 到[ ] list中
         return s
 
 def read_call_expr(src, operator):
-    while src.current() == '(':
+    while src.current() == '(':     # 对于括号开头的，读取括号内的参数
         src.pop_first()
-        operands = read_comma_separated(src, read_expr)
+        operands = read_comma_separated(src, read_expr) # 递归调用read_expr
         src.expect(')')
-        operator = CallExpr(operator, operands)
+        operator = CallExpr(operator, operands) # 返回CallExpr
     return operator
 
 def read_param(src):
