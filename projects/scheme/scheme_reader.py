@@ -119,6 +119,7 @@ quotes = {"'":  'quote',
 
 def scheme_read(src):
     """Read the next expression from SRC, a Buffer of tokens.
+    读取一个括号内部的完整表达式，丢弃括号
 
     >>> scheme_read(Buffer(tokenize_lines(['nil'])))
     nil
@@ -135,21 +136,26 @@ def scheme_read(src):
     if val == 'nil':
         # BEGIN PROBLEM 1
         "*** YOUR CODE HERE ***"
+        return nil
         # END PROBLEM 1
     elif val == '(':
         # BEGIN PROBLEM 1
         "*** YOUR CODE HERE ***"
+        return read_tail(src)   # 有左括号，就读取剩下的直到右括号
         # END PROBLEM 1
     elif val in quotes:
         # BEGIN PROBLEM 6
         "*** YOUR CODE HERE ***"
+        return Pair(quotes[val], Pair(scheme_read(src), nil))
         # END PROBLEM 6
     elif val not in DELIMITERS:
         return val
     else:
         raise SyntaxError('unexpected token: {0}'.format(val))
+
 def read_tail(src):
     """Return the remainder of a list in SRC, starting before an element or ).
+    左括号被读取了，接下来读取内容直到右括号，返回表达式pair
 
     >>> read_tail(Buffer(tokenize_lines([')'])))
     nil
@@ -162,10 +168,15 @@ def read_tail(src):
         elif src.current() == ')':
             # BEGIN PROBLEM 1
             "*** YOUR CODE HERE ***"
+            src.pop_first()
+            return nil
             # END PROBLEM 1
         else:
             # BEGIN PROBLEM 1
             "*** YOUR CODE HERE ***"
+            first = scheme_read(src)
+            rest  = read_tail(src)
+            return Pair(first, rest)
             # END PROBLEM 1
     except EOFError:
         raise SyntaxError('unexpected end of file')
